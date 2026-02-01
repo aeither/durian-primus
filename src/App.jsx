@@ -248,8 +248,8 @@ export default function App() {
                   <dl className="payment-dl">
                     <dt>To</dt>
                     <dd>{paymentData.merchant?.name ?? '—'}</dd>
-                    <dt>Description</dt>
-                    <dd>{paymentData.description}</dd>
+                    <dt>Reference ID</dt>
+                    <dd>{getUrlParams().ref ?? '—'}</dd>
                   </dl>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
