@@ -9,6 +9,7 @@ function getUrlParams() {
     isPaymentSuccess: params.get('payment') === 'true',
     amount: params.get('amount'),
     merchant: params.get('merchant'),
+    ref: params.get('ref'),
   }
 }
 
@@ -111,8 +112,12 @@ export default function App() {
 
   const handlePay = async () => {
     setPaymentStatus('processing')
+    const { ref } = getUrlParams()
     try {
-      await primusProof()
+      const result = await primusProof({ reference: ref ?? undefined })
+      if (result?.ok === false) {
+        throw new Error(result.error ?? 'Payment failed')
+      }
       setPaymentStatus('success')
     } catch (e) {
       setError(e.message)

@@ -22,7 +22,13 @@ async function ensureInit() {
   return result;
 }
 
-export async function primusProof() {
+/**
+ * @param {Object} [options] - Payment options when attestation succeeds.
+ * @param {string} [options.merchantAddress] - Recipient wallet address (address B).
+ * @param {string|number} [options.amount] - USDC amount (human-readable, e.g. 10.5).
+ * @param {string} [options.reference] - Payment reference (e.g. 'DUR-M4X7K2-ABC123').
+ */
+export async function primusProof(options = {}) {
   await ensureInit();
   // Generate attestation request
   const request = primusZKTLS.generateRequestParams(attTemplateID, userAddress);
@@ -54,9 +60,24 @@ export async function primusProof() {
   console.log("verifyResult=", verifyResult);
 
   if (verifyResult === true) {
-    // Business logic checks, such as attestation content and timestamp checks
-    // do your own business logic
+    // Business logic: call server to pay merchant (USDC transfer + payment complete)
+    const payRes = await fetch(`${apiBase}/pay-merchant`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        merchantAddress: options?.merchantAddress,
+        amount: options?.amount,
+        reference: options?.reference,
+      }),
+    });
+    const payData = await payRes.json();
+    if (!payRes.ok) {
+      console.error('pay-merchant failed', payData);
+      return { ok: false, error: payData?.error ?? payRes.statusText };
+    }
+    return { ok: true, data: payData };
   } else {
     // If failed, define your own logic.
+    return { ok: false, error: 'Attestation verification failed' };
   }
 }
